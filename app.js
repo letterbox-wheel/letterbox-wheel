@@ -13,9 +13,7 @@ import {
   onAuthStateChanged,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  sendEmailVerification,
-  signOut,
-  reload
+  signOut
 } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
 import { firebaseConfig } from './firebase-config.js';
 
@@ -49,8 +47,6 @@ const el = {
   emailInput: document.getElementById('emailInput'),
   passwordInput: document.getElementById('passwordInput'),
   signUpBtn: document.getElementById('signUpBtn'),
-  sendVerifyBtn: document.getElementById('sendVerifyBtn'),
-  refreshVerifyBtn: document.getElementById('refreshVerifyBtn'),
   authStatusText: document.getElementById('authStatusText'),
   loginForm: document.getElementById('loginForm'),
   nicknameInput: document.getElementById('nicknameInput'),
@@ -119,26 +115,15 @@ function initFirebase() {
       return;
     }
 
-    await reload(state.firebaseUser);
     updateAuthUiState();
 
-    if (isVerifiedUser()) {
-      subscribeUserState(state.firebaseUser.uid);
-      const savedNickname = localStorage.getItem(LAST_USER_KEY);
-      if (savedNickname && savedNickname.trim().length >= 2) {
-        login(savedNickname.trim());
-      } else {
-        el.resultBox.textContent = 'Enter nickname to continue.';
-        drawWheel(['Nickname']);
-      }
+    subscribeUserState(state.firebaseUser.uid);
+    const savedNickname = localStorage.getItem(LAST_USER_KEY);
+    if (savedNickname && savedNickname.trim().length >= 2) {
+      login(savedNickname.trim());
     } else {
-      unsubscribeUserState();
-      state.userWatched = [];
-      state.currentUser = null;
-      el.appSection.classList.add('hidden');
-      el.loginSection.classList.remove('hidden');
-      el.syncStatusText.textContent = 'Sync: verification required';
-      drawWheel(['Verify email']);
+      el.resultBox.textContent = 'Enter nickname to continue.';
+      drawWheel(['Nickname']);
     }
   });
 }
@@ -189,22 +174,10 @@ function bindEvents() {
     await handleSignUp();
   });
 
-  el.sendVerifyBtn.addEventListener('click', async () => {
-    await handleSendVerification();
-  });
-
-  el.refreshVerifyBtn.addEventListener('click', async () => {
-    await refreshVerificationStatus();
-  });
-
   el.loginForm.addEventListener('submit', (event) => {
     event.preventDefault();
     const nickname = el.nicknameInput.value.trim();
     if (nickname.length < 2) {
-      return;
-    }
-    if (!isVerifiedUser()) {
-      el.resultBox.textContent = 'Verify your email first.';
       return;
     }
     login(nickname);
@@ -254,25 +227,18 @@ function isFirebaseConfigured() {
 }
 
 function isVerifiedUser() {
-  return Boolean(state.firebaseUser && state.firebaseUser.emailVerified);
+  return Boolean(state.firebaseUser);
 }
 
 function updateAuthUiState() {
   if (!state.firebaseUser) {
-    el.authStatusText.textContent = 'Sign in and verify your email first.';
+    el.authStatusText.textContent = 'Sign in to continue.';
     el.nicknameInput.disabled = true;
     el.enterNicknameBtn.disabled = true;
     return;
   }
 
-  if (isVerifiedUser()) {
-    el.authStatusText.textContent = `Signed in: ${state.firebaseUser.email} (verified)`;
-    el.nicknameInput.disabled = false;
-    el.enterNicknameBtn.disabled = false;
-    return;
-  }
-
-  el.authStatusText.textContent = `Signed in: ${state.firebaseUser.email} (not verified)`;
+  el.authStatusText.textContent = `Signed in: ${state.firebaseUser.email}`;
   el.nicknameInput.disabled = true;
   el.enterNicknameBtn.disabled = true;
 }
@@ -288,7 +254,7 @@ function resetSessionUI() {
   el.checklistList.innerHTML = '';
   el.syncStatusText.textContent = 'Sync: connecting...';
   updateAuthUiState();
-  el.resultBox.textContent = 'Sign in and verify email to continue.';
+  el.resultBox.textContent = 'Sign in to continue.';
   drawWheel(['Sign in']);
   disableActions();
 }
@@ -328,8 +294,7 @@ async function handleSignUp() {
       email: email.toLowerCase(),
       createdAt: new Date().toISOString()
     });
-    await sendEmailVerification(cred.user);
-    el.authStatusText.textContent = 'Account created. Verification email sent.';
+    el.authStatusText.textContent = 'Account created. You can now sign in.';
   } catch (error) {
     el.authStatusText.textContent = error.message || 'Could not create account.';
   }
@@ -365,50 +330,15 @@ async function handleSignIn() {
 
     el.emailInput.value = mappedEmail;
     await signInWithEmailAndPassword(state.auth, mappedEmail, password);
-    el.authStatusText.textContent = 'Signed in. If needed, verify your email.';
+    el.authStatusText.textContent = 'Signed in.';
   } catch (error) {
     el.authStatusText.textContent = error.message || 'Sign in failed.';
   }
 }
 
-async function handleSendVerification() {
-  if (!state.firebaseUser) {
-    el.authStatusText.textContent = 'Sign in first.';
-    return;
-  }
-
-  try {
-    await sendEmailVerification(state.firebaseUser);
-    el.authStatusText.textContent = 'Verification email sent.';
-  } catch (error) {
-    el.authStatusText.textContent = error.message || 'Could not send verification email.';
-  }
-}
-
-async function refreshVerificationStatus() {
-  if (!state.firebaseUser) {
-    return;
-  }
-
-  try {
-    await reload(state.firebaseUser);
-    updateAuthUiState();
-
-    if (isVerifiedUser()) {
-      subscribeUserState(state.firebaseUser.uid);
-      el.authStatusText.textContent = `Signed in: ${state.firebaseUser.email} (verified)`;
-      el.resultBox.textContent = 'Email verified. Enter nickname to continue.';
-    } else {
-      el.authStatusText.textContent = `Signed in: ${state.firebaseUser.email} (not verified yet)`;
-    }
-  } catch {
-    el.authStatusText.textContent = 'Could not refresh verification status.';
-  }
-}
-
 function login(nickname) {
-  if (!isVerifiedUser()) {
-    el.resultBox.textContent = 'Verify your email first.';
+  if (!state.firebaseUser) {
+    el.resultBox.textContent = 'Sign in first.';
     return;
   }
 
@@ -567,7 +497,7 @@ function renderChecklist() {
 
 async function addWatchedMovie(title, note) {
   if (!state.firebaseReady || !state.currentUser || !isVerifiedUser() || !state.stateRef) {
-    el.resultBox.textContent = 'You must be signed in with verified email.';
+    el.resultBox.textContent = 'You must be signed in.';
     return;
   }
 
@@ -619,7 +549,7 @@ async function addWatchedMovie(title, note) {
 
 async function removeWatchedByTitle(title) {
   if (!state.firebaseReady || !isVerifiedUser() || !state.stateRef) {
-    el.resultBox.textContent = 'You must be verified to restore movies.';
+    el.resultBox.textContent = 'You must be signed in to restore movies.';
     return;
   }
 

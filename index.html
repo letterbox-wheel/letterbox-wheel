@@ -19,18 +19,16 @@
         <div class="row wrap">
           <button id="signInBtn" type="submit">Sign In</button>
           <button id="signUpBtn" type="button" class="ghost">Sign Up</button>
-          <button id="sendVerifyBtn" type="button" class="ghost">Send Verification</button>
-          <button id="refreshVerifyBtn" type="button" class="ghost">I Verified</button>
         </div>
       </form>
-      <p class="muted" id="authStatusText">Sign in and verify your email first.</p>
+      <p class="muted" id="authStatusText">Sign in to continue.</p>
 
       <h2>Nickname</h2>
       <form id="loginForm" class="row">
         <input id="nicknameInput" type="text" placeholder="Nickname" minlength="2" required disabled />
         <button id="enterNicknameBtn" type="submit" disabled>Enter</button>
       </form>
-      <p class="muted">Verified users can enter with nickname and edit only their own watched/removed list.</p>
+      <p class="muted">Signed-in users can enter with nickname and edit only their own watched/removed list.</p>
     </section>
 
     <section id="appSection" class="card hidden">

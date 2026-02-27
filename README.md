@@ -43,27 +43,23 @@ service cloud.firestore {
 
     match /userLists/{userId} {
       allow read, write: if request.auth != null
-                         && request.auth.uid == userId
-                         && request.auth.token.email_verified == true;
+                         && request.auth.uid == userId;
     }
   }
 }
 ```
 
-### In-app verification flow
+### In-app auth flow
 
 - Sign up with email/password.
 - Sign in uses username + password.
 - Sign up uses username + email + password.
-- Click **Send Verification**.
-- Open email and verify.
-- Return to app and click **I Verified**.
 - Then enter nickname and use the wheel.
 
 ## Production checklist
 
 - Add your GitHub Pages domain in **Authentication → Settings → Authorized domains**.
-- Use Firestore rules from this README (verified users only for writes).
+- Use Firestore rules from this README (auth required for private per-user reads/writes).
 - Keep Firebase project in production mode and disable test rules.
 - Rotate Firebase keys only if leaked in other contexts (web API key itself is public by design).
 - Restrict who can restore movies: only the user who removed a movie can restore it.
@@ -72,7 +68,6 @@ service cloud.firestore {
 
 - Sign in by nickname
 - Username/password sign-in (with email/password under the hood)
-- Email verification gate for write actions
 - Spin wheel to select a movie
 - Remove selected movie after spin
 - Manually remove watched movies with a note
