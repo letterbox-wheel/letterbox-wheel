@@ -233,14 +233,10 @@ function isVerifiedUser() {
 function updateAuthUiState() {
   if (!state.firebaseUser) {
     el.authStatusText.textContent = 'Sign in to continue.';
-    el.nicknameInput.disabled = true;
-    el.enterNicknameBtn.disabled = true;
     return;
   }
 
   el.authStatusText.textContent = `Signed in: ${state.firebaseUser.email}`;
-  el.nicknameInput.disabled = true;
-  el.enterNicknameBtn.disabled = true;
 }
 
 function resetSessionUI() {
