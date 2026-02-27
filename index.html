@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Letterboxd Top 500 Wheel</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>Letterboxd Top 500 Wheel</h1>
+
+    <section id="loginSection" class="card">
+      <h2>Account</h2>
+      <form id="authForm" class="column auth-box">
+        <input id="authUsernameInput" type="text" placeholder="Username" minlength="3" required />
+        <input id="emailInput" type="email" placeholder="Email (required for Sign Up)" />
+        <input id="passwordInput" type="password" placeholder="Password (min 6 chars)" minlength="6" required />
+        <div class="row wrap">
+          <button id="signInBtn" type="submit">Sign In</button>
+          <button id="signUpBtn" type="button" class="ghost">Sign Up</button>
+          <button id="sendVerifyBtn" type="button" class="ghost">Send Verification</button>
+          <button id="refreshVerifyBtn" type="button" class="ghost">I Verified</button>
+        </div>
+      </form>
+      <p class="muted" id="authStatusText">Sign in and verify your email first.</p>
+
+      <h2>Nickname</h2>
+      <form id="loginForm" class="row">
+        <input id="nicknameInput" type="text" placeholder="Nickname" minlength="2" required disabled />
+        <button id="enterNicknameBtn" type="submit" disabled>Enter</button>
+      </form>
+      <p class="muted">Verified users can enter with nickname and edit only their own watched/removed list.</p>
+    </section>
+
+    <section id="appSection" class="card hidden">
+      <div class="between">
+        <div>
+          <h2 id="welcomeText"></h2>
+          <p class="muted" id="statsText"></p>
+          <p class="muted" id="syncStatusText">Sync: connecting...</p>
+        </div>
+        <button id="logoutBtn" class="ghost">Switch User</button>
+      </div>
+
+      <div class="wheel-area">
+        <div class="pointer"></div>
+        <canvas id="wheelCanvas" width="520" height="520"></canvas>
+      </div>
+
+      <div class="row wrap">
+        <button id="spinBtn">Spin Wheel</button>
+        <button id="removeSelectedBtn" class="danger" disabled>Remove Selected Movie</button>
+      </div>
+
+      <div class="result" id="resultBox">Spin to choose a movie.</div>
+
+      <h3>Mark Watched (remove from future spins)</h3>
+      <form id="watchedForm" class="column">
+        <input id="watchedTitleInput" type="text" placeholder="Movie title" required />
+        <textarea id="watchedNoteInput" rows="3" placeholder="Why remove it? (optional note)"></textarea>
+        <button type="submit">Add to watched/removed</button>
+      </form>
+
+      <h3>Your Private Watched / Removed List</h3>
+      <ul id="watchedList" class="list"></ul>
+
+      <h3>Top 500 Checklist</h3>
+      <input id="checklistSearchInput" type="text" placeholder="Search movie title..." />
+      <ul id="checklistList" class="checklist"></ul>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
